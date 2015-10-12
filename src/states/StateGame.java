@@ -28,7 +28,7 @@ public class StateGame extends BasicGameState{
 		container.setClearEachFrame(true);
 		System.out.println("THis isn't called");
 		map = new GameMap(125, 125);
-		map.placeTower(new DefaultTower(75.0 * 800 / 125,75.0 * 800 / 125, map)); //MAGIC NUMBER ALERT
+		map.placeTower(new DefaultTower(75 ,75 , map));
 		map.spawnCreep(new DefaultMonster(0, 0));
 	}
 
@@ -40,7 +40,7 @@ public class StateGame extends BasicGameState{
 	@Override
 	public void update(GameContainer arg0, StateBasedGame arg1, int arg2) throws SlickException {
 		map.update();
-		map.spawnCreep(new DefaultMonster(Math.random() * 800/*125*/, Math.random() * 800 /*125*/)); // MAGIC NUMBER
+		map.spawnCreep(new DefaultMonster(Math.random() * 125, Math.random() * 125)); 
 	}
 
 	@Override

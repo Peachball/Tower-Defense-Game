@@ -55,7 +55,7 @@ public class GameMap {
 	public void draw(Graphics g) {
 		for(int i = 0; i < elementList.size(); i++) {
 			GameElement temp = elementList.get(i);
-			//temp.getImage().rotate((float)Math.toDegrees(temp.getOrientation())); DECOMMENT THIS SECTION ASAP
+			temp.getImage().rotate((float)Math.toDegrees(temp.getOrientation()));
 			temp.draw(g);
 		}
 	}
@@ -63,7 +63,7 @@ public class GameMap {
 	public void placeTower(Tower theTower) { //Will snap the tower to the grid and also change the boolean pathfinding array so that that square is blocked
 		Tower tempTower = theTower;  //TODO: Convert loc position to grid position
 		elementBuffer.add(theTower);
-		//pathGrid[(int) tempTower.getLoc().x][(int) tempTower.getLoc().y] = true;  DECOMMENT THIS SECTION ASAP (only used for demos)
+		pathGrid[(int) tempTower.getLoc().x][(int) tempTower.getLoc().y] = true;
 	}
 	
 	public void spawnCreep(Monster creep) {

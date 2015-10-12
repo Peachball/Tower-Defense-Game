@@ -26,9 +26,4 @@ public class DefaultTower extends Tower{
 		}
 	}
 	
-	@Override
-	public void draw(Graphics g){
-		g.drawImage(this.getImage().getScaledCopy((float) 0.5/* MAGIC NUMBER*/),(float)this.getX(), (float)this.getY());
-	}
-	
 }
