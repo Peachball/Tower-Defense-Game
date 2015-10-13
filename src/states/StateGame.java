@@ -1,18 +1,25 @@
 
 package states;
 
+import mechanic.Game;
+import mechanic.GameMap;
+import mechanic.Point;
+import monsters.DefaultMonster;
+
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
-import mechanic.Game;
-import mechanic.GameMap;
-import monsters.DefaultMonster;
+import particlesystem.ParticleEmitter;
+import particlesystem.emitterTypes;
 import towers.DefaultTower;
 
 public class StateGame extends BasicGameState{
+	int delay = 0; //UNECCESARY VARIABLE, FOUND IN UPDATE
 	
 	GameMap map;
 	
@@ -34,13 +41,20 @@ public class StateGame extends BasicGameState{
 
 	@Override
 	public void render(GameContainer container, StateBasedGame arg1, Graphics g) throws SlickException {
+		g.clear();
 		map.draw(g);
 	}
 
 	@Override
 	public void update(GameContainer arg0, StateBasedGame arg1, int arg2) throws SlickException {
 		map.update();
-		map.spawnCreep(new DefaultMonster(Math.random() * 125, Math.random() * 125)); 
+		map.passFPS(arg0.getFPS());
+		delay--;
+		if(delay <= 0)
+		{
+			map.spawnCreep(new DefaultMonster(Math.random() * 125, Math.random() * 125)); 
+			delay = 50;
+		}
 	}
 
 	@Override
