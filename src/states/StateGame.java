@@ -36,7 +36,7 @@ public class StateGame extends BasicGameState{
 		System.out.println("THis isn't called");
 		map = new GameMap(125, 125);
 		map.placeTower(new DefaultTower(75 ,75 , map));
-		map.spawnCreep(new DefaultMonster(0, 0));
+		map.spawnCreep(new DefaultMonster(0, 0, map));
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class StateGame extends BasicGameState{
 		delay--;
 		if(delay <= 0)
 		{
-			map.spawnCreep(new DefaultMonster(Math.random() * 125, Math.random() * 125)); 
+			map.spawnCreep(new DefaultMonster(Math.random() * 125, Math.random() * 125, map)); 
 			delay = 50;
 		}
 	}

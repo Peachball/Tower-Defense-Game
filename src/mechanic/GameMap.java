@@ -71,7 +71,6 @@ public class GameMap {
 	public void draw(Graphics g) {
 		for(int i = 0; i < elementList.size(); i++) {
 			GameElement temp = elementList.get(i);
-			temp.getImage().rotate((float)Math.toDegrees(temp.getOrientation()));
 			temp.draw(g);
 		}
 		for(int i = 0; i < particleList.size(); i++)
