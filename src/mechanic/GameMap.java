@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import monsters.Monster;
 
+import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 /*
  * My Ideas:
@@ -15,6 +16,8 @@ import org.newdawn.slick.Graphics;
  * -Whenever a tower is placed, the tower game element's position gets snapped to the grid and the Map's boolean array gets updated, and so will each GameElement's boolean array
  * -This means that their pathfinding gets updated as well
  */
+
+
 
 import particlesystem.ParticleBase;
 import particlesystem.ParticleEmitter;
@@ -27,7 +30,7 @@ public class GameMap {
 	int spawnY;
 	int gWidth; //GRID WIDTH
 	int gHeight; //GRID HEIGHT
-	float fps;
+	float frametime;
 	boolean[][] pathGrid;
 	ArrayList<GameElement> elementList = new ArrayList<GameElement>();
 	ArrayList<GameElement> elementBuffer = new ArrayList<GameElement>();
@@ -50,7 +53,7 @@ public class GameMap {
 		//Updates everything (positions)
 		for(int i = 0; i < elementList.size(); i++) {
 			elementList.get(i).update(); 
-			elementList.get(i).passFPS(fps);
+			elementList.get(i).passFrameTime(frametime);
 			if(elementList.get(i).getRemove()){
 				elementList.remove(i);
 			}
@@ -58,7 +61,7 @@ public class GameMap {
 		}
 		for(int i = 0; i < particleList.size(); i++) {
 			particleList.get(i).move();
-			particleList.get(i).passFPS(fps);
+			particleList.get(i).passFrameTime(frametime);
 			if(particleList.get(i).getRemove()){
 				particleList.remove(i);
 			}
@@ -72,6 +75,17 @@ public class GameMap {
 		for(int i = 0; i < elementList.size(); i++) {
 			GameElement temp = elementList.get(i);
 			temp.draw(g);
+			//BELOW IS FOR DEBUGGING PURPOSES
+			if(temp instanceof Tower) {
+				if(((Tower) temp).targetIsTargetable()) {
+					g.setColor(Color.red);
+					g.drawOval((float)((Tower) temp).getTarget().getLoc().getX() - 50, (float)((Tower) temp).getTarget().getLoc().getY() - 50, 100, 100);
+				} else {
+					g.setColor(Color.white);
+				}
+				g.drawOval((float)temp.getLoc().getX() - ((Tower) temp).getAttackRange(), (float)temp.getLoc().getY() - ((Tower) temp).getAttackRange(), ((Tower) temp).getAttackRange() * 2, ((Tower) temp).getAttackRange() * 2);
+			}
+			//ABOVE IS FOR DEBUGGING PURPOSES
 		}
 		for(int i = 0; i < particleList.size(); i++)
 		{
@@ -102,10 +116,7 @@ public class GameMap {
 	public void addParticleEmitter(ParticleEmitter e) {
 		elementBuffer.add(e);
 	}
-	public void passFPS(int fps){
-		this.fps = (float) fps;
-		if(this.fps < 1){
-			this.fps = 1000;
-		}
+	public void passFrameTime(float d){
+		this.frametime = d;
 	}
 }

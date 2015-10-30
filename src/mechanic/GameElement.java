@@ -12,18 +12,21 @@ public abstract class GameElement {
 	private double orientation; // in degrees
 	private Point loc;
 	private double size; // as a ratio (scale thing)
+	/*
+	 * I don't think we need these in each game element, since these should only belong to the towers
 	private double dmg;
 	private DamageType type;
 	private double reload; // in frames
 	private double aoe; // in pixels
 	private double range;
 	private GameElement target;
+	*/
 	static DamageType[] types = DamageType.values();
 	static double[] resistances = new double[types.length];
 	private double cost;
 	private Image pic;
 	private boolean remove;
-	private float fps = 1000;
+	private float frametime;
 	
 	public GameElement() {
 		this(new Point());
@@ -216,10 +219,10 @@ public abstract class GameElement {
 			g.drawImage(pic, (float) loc.x - width/2, (float) loc.y - height/2);
 		}
 	}
-	public float getFPS() {
-		return fps;
+	public double getFrameTime() {
+		return frametime;
 	}
-	public void passFPS(float fps) {
-		this.fps = fps;
+	public void passFrameTime(float frametime) {
+		this.frametime = frametime;
 	}
 }
