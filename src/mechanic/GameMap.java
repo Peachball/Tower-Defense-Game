@@ -96,7 +96,7 @@ public class GameMap {
 	public void placeTower(Tower theTower) { //Will snap the tower to the grid and also change the boolean pathfinding array so that that square is blocked
 		Tower tempTower = theTower;  //TODO: Convert loc position to grid position
 		elementBuffer.add(theTower);
-		pathGrid[(int) tempTower.getLoc().x][(int) tempTower.getLoc().y] = true;
+		//pathGrid[(int) tempTower.getLoc().x][(int) tempTower.getLoc().y] = true;
 	}
 	
 	public void spawnCreep(Monster creep) {

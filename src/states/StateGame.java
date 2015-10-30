@@ -35,16 +35,9 @@ public class StateGame extends BasicGameState{
 	public void enter(GameContainer container, StateBasedGame arg1){
 		container.setClearEachFrame(true);
 		System.out.println("THis isn't called");
-<<<<<<< HEAD
-		map = new GameMap(125, 125);
-		map.placeTower(new DefaultTower(75 ,75 , map));
-		map.spawnCreep(new DefaultMonster(0, 0, map));
-=======
 		map = new GameMap(125, 125);
 		map.placeTower(new DefaultTower(400, 400, map)); //MAGIC NUMBER ALERT
 		map.spawnCreep(new DefaultMonster(0, 0, map));
-		
->>>>>>> Michael
 	}
 
 	@Override
@@ -55,15 +48,6 @@ public class StateGame extends BasicGameState{
 
 	@Override
 	public void update(GameContainer arg0, StateBasedGame arg1, int arg2) throws SlickException {
-<<<<<<< HEAD
-		map.update();
-		map.passFPS(arg0.getFPS());
-		delay--;
-		if(delay <= 0)
-		{
-			map.spawnCreep(new DefaultMonster(Math.random() * 125, Math.random() * 125, map)); 
-			delay = 50;
-=======
 		map.update();
 		map.passFrameTime((float) ((System.nanoTime() - systemTime) / 1000000000)); //calculates difference in time per frame , and magic number is there since 1 second is 10^9 nanoseconds
 		systemTime = System.nanoTime();
@@ -71,8 +55,7 @@ public class StateGame extends BasicGameState{
 		if(delay <= 0)
 		{
 			map.spawnCreep(new DefaultMonster(/*Math.random() * 800*/0, Math.random() * 800 /*400*/, map)); // MAGIC NUMBER
-			delay = 3000;
->>>>>>> Michael
+			delay = 3000; //This is solely to generate the random ships
 		}
 	}
 
