@@ -11,7 +11,7 @@ import mechanic.Point;
 import monsters.Monster;
 
 public class Tower extends GameElement {
-	private GameMap map;
+	protected GameMap map;
 	
 	ArrayList<GameElement> elementsInRange = new ArrayList<GameElement>();
 	

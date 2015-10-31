@@ -2,6 +2,7 @@
 package states;
 
 import mechanic.Game;
+import mechanic.GameInfo;
 import mechanic.GameMap;
 import mechanic.Point;
 import monsters.DefaultMonster;
@@ -49,10 +50,18 @@ public class StateGame extends BasicGameState{
 		g.clear();
 		map.draw(g);
 	}
+	
+	private void endGame(StateBasedGame game){
+		game.enterState(Game.STATE_END);
+	}
 
 	@Override
-	public void update(GameContainer arg0, StateBasedGame arg1, int arg2) throws SlickException {
+	public void update(GameContainer container, StateBasedGame gameState, int mode) throws SlickException {
 		map.update();
+		if(map.gameStatus != 0){
+			GameInfo.won = map.gameStatus;
+			endGame(gameState);
+		}
 		map.passFrameTime((float) ((System.nanoTime() - systemTime) / 1000000000)); //calculates difference in time per frame , and magic number is there since 1 second is 10^9 nanoseconds
 		systemTime = System.nanoTime();
 		delay--;

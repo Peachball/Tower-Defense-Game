@@ -16,6 +16,7 @@ public class Game extends StateBasedGame {
 	public static int STATE_MENU = 0;
 	public static int STATE_GAME = 1;
 	public static int STATE_HELP = 2;
+	public static int STATE_END = 3;
 	
 	Map<String, Image> images = new HashMap<String, Image>();
 	

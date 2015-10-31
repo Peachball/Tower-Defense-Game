@@ -3,8 +3,6 @@ package mechanic;
 
 import java.util.ArrayList;
 
-import monsters.Monster;
-
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 /*
@@ -17,30 +15,31 @@ import org.newdawn.slick.Graphics;
  * -This means that their pathfinding gets updated as well
  */
 
-
-
+import monsters.Monster;
 import particlesystem.ParticleBase;
 import particlesystem.ParticleEmitter;
 import projectiles.Projectile;
+import towers.Base;
 import towers.Tower;
 
 public class GameMap {
 	
-	int spawnX;
-	int spawnY;
-	int windowWidth; //WINDOW WIDTH
-	int windowHeight; //WINOW HEIGHT
-	int gWidth; //GRID WIDTH
-	int gHeight; //GRID HEIGHT
-	Point mouseLoc;
-	float frametime;
-	boolean[][] pathGrid;
-	ArrayList<GameElement> elementList = new ArrayList<GameElement>();
-	ArrayList<GameElement> elementBuffer = new ArrayList<GameElement>();
-	ArrayList<ParticleBase> particleList = new ArrayList<ParticleBase>();
-	ArrayList<ParticleBase> particleBuffer = new ArrayList<ParticleBase>();
+	public int gameStatus;
+	private int spawnX;
+	private int spawnY;
+	private int windowWidth; //WINDOW WIDTH
+	private int windowHeight; //WINOW HEIGHT
+	private int gWidth; //GRID WIDTH
+	private int gHeight; //GRID HEIGHT
+	private Point mouseLoc;
+	private float frametime;
+	private boolean[][] pathGrid;
+	private ArrayList<GameElement> elementList = new ArrayList<GameElement>();
+	private ArrayList<GameElement> elementBuffer = new ArrayList<GameElement>();
+	private ArrayList<ParticleBase> particleList = new ArrayList<ParticleBase>();
+	private ArrayList<ParticleBase> particleBuffer = new ArrayList<ParticleBase>();
 	
-	public GameMap(int height, int width, int spawnX, int spawnY){
+	public GameMap(int height, int width, int spawnX, int spawnY, int baseX, int baseY){
 		gWidth = width;
 		gHeight = height;
 		this.spawnX = spawnX;
@@ -49,10 +48,12 @@ public class GameMap {
 		this.mouseLoc = new Point();
 		this.windowWidth = 800; //MAGIC NUMBERSSSSS
 		this.windowHeight = 800; 
+		this.gameStatus = 0;
+		this.placeTower(new Base(baseX, baseY, this));
 	}
 	
 	public GameMap(int height, int width){
-		this(height, width, 0, 0);
+		this(height, width, 0, 0, height, width);
 	}
 	
 	public void update() {
@@ -172,5 +173,8 @@ public class GameMap {
 	public void passMousePosition(int x, int y) {
 		this.mouseLoc.changeX(x);
 		this.mouseLoc.changeY(y);
+	}
+	public void endGame(int status){
+		this.gameStatus = status;
 	}
 }
