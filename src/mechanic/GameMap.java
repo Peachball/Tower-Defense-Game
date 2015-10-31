@@ -28,8 +28,11 @@ public class GameMap {
 	
 	int spawnX;
 	int spawnY;
+	int windowWidth; //WINDOW WIDTH
+	int windowHeight; //WINOW HEIGHT
 	int gWidth; //GRID WIDTH
 	int gHeight; //GRID HEIGHT
+	Point mouseLoc;
 	float frametime;
 	boolean[][] pathGrid;
 	ArrayList<GameElement> elementList = new ArrayList<GameElement>();
@@ -43,6 +46,9 @@ public class GameMap {
 		this.spawnX = spawnX;
 		this.spawnY = spawnY;
 		pathGrid = new boolean[gWidth][gHeight];
+		this.mouseLoc = new Point();
+		this.windowWidth = 800; //MAGIC NUMBERSSSSS
+		this.windowHeight = 800; 
 	}
 	
 	public GameMap(int height, int width){
@@ -78,25 +84,69 @@ public class GameMap {
 			//BELOW IS FOR DEBUGGING PURPOSES
 			if(temp instanceof Tower) {
 				if(((Tower) temp).targetIsTargetable()) {
+					//draws a circle around the turret's target
 					g.setColor(Color.red);
 					g.drawOval((float)((Tower) temp).getTarget().getLoc().getX() - 50, (float)((Tower) temp).getTarget().getLoc().getY() - 50, 100, 100);
 				} else {
-					g.setColor(Color.white);
+					g.setColor(Color.gray);
 				}
+				//attack range
 				g.drawOval((float)temp.getLoc().getX() - ((Tower) temp).getAttackRange(), (float)temp.getLoc().getY() - ((Tower) temp).getAttackRange(), ((Tower) temp).getAttackRange() * 2, ((Tower) temp).getAttackRange() * 2);
 			}
+			//health bars
+			g.setColor(Color.red);
+			g.drawRect((float)temp.getLoc().getX() - 50, (float)temp.getLoc().getY() - 50, (float)temp.getHP() / 5, 10);
 			//ABOVE IS FOR DEBUGGING PURPOSES
 		}
 		for(int i = 0; i < particleList.size(); i++)
 		{
 			particleList.get(i).draw(g);
 		}
+		this.drawGridHighlight(g);
+	}
+	//draws highlights on the map about which grid box the mouse is in
+	public void drawGridHighlight(Graphics g) {
+		Point loc = gridToPosition(positionToGrid(this.mouseLoc));
+		float boxWidth = this.windowWidth / this.gWidth;
+		float boxHeight = this.windowHeight / this.gHeight;
+		g.setColor(Color.cyan);
+		//if is occupied
+		if(pathGrid[(int) positionToGrid(this.mouseLoc).x][(int) positionToGrid(this.mouseLoc).y] == true)
+			g.setColor(Color.magenta);
+		g.drawRect((float)loc.getX() - boxWidth / 2, (float)loc.getY() - boxHeight / 2, boxWidth, boxHeight);
+	}
+	//Takes a position on the map and converts it into grid coordinates
+	public Point positionToGrid(Point loc) {
+		//Squishes it down and floors the value
+		int gridposX = (int)(this.gWidth * (loc.getX() / this.windowWidth));
+		int gridposY = (int)(this.gHeight * (loc.getY() / this.windowHeight));
+		//If for whatever reason the position is out of bounds, it will set it to the closest one
+		if(gridposX > this.gWidth - 1)
+			gridposX = this.gWidth - 1;
+		if(gridposX < 0)
+			gridposX = 0;
+		if(gridposY > this.gHeight - 1)
+			gridposY = this.gHeight - 1;
+		if(gridposY < 0)
+			gridposY = 0;
+		//Return the grid position as a point
+		return new Point(gridposX, gridposY);
+	}
+	//Takes a position on the grid and converts it into map coordinates
+	public Point gridToPosition(Point loc) {
+		float x = (float) (loc.getX() + 0.5) * this.windowWidth / this.gWidth;
+		float y = (float) (loc.getY() + 0.5) * this.windowHeight / this.gHeight;
+		return new Point(x, y);
 	}
 	
 	public void placeTower(Tower theTower) { //Will snap the tower to the grid and also change the boolean pathfinding array so that that square is blocked
 		Tower tempTower = theTower;  //TODO: Convert loc position to grid position
+		Point gridPos = positionToGrid(theTower.getLoc());
+		Point loc = gridToPosition(gridPos);
+		tempTower.getLoc().changeX(loc.getX());
+		tempTower.getLoc().changeY(loc.getY());
 		elementBuffer.add(theTower);
-		//pathGrid[(int) tempTower.getLoc().x][(int) tempTower.getLoc().y] = true;
+		pathGrid[(int) gridPos.getX()][(int) gridPos.getY()] = true;
 	}
 	
 	public void spawnCreep(Monster creep) {
@@ -118,5 +168,9 @@ public class GameMap {
 	}
 	public void passFrameTime(float d){
 		this.frametime = d;
+	}
+	public void passMousePosition(int x, int y) {
+		this.mouseLoc.changeX(x);
+		this.mouseLoc.changeY(y);
 	}
 }
