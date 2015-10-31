@@ -1,22 +1,16 @@
 
 package states;
 
-import mechanic.Game;
-import mechanic.GameInfo;
-import mechanic.GameMap;
-import mechanic.Point;
-import monsters.DefaultMonster;
-
-import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
-import particlesystem.ParticleEmitter;
-import particlesystem.emitterTypes;
+import mechanic.Game;
+import mechanic.GameInfo;
+import mechanic.GameMap;
+import monsters.DefaultMonster;
 import towers.DefaultTower;
 import towers.Tower;
 
@@ -35,7 +29,6 @@ public class StateGame extends BasicGameState{
 	@Override
 	public void enter(GameContainer container, StateBasedGame arg1){
 		container.setClearEachFrame(true);
-		System.out.println("THis isn't called");
 		map = new GameMap(20, 20);
 		/*
 		map.placeTower(new DefaultTower(200, 400, map, 300, 1, 100, 150)); //MAGIC NUMBER ALERT
