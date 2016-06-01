@@ -10,7 +10,11 @@
 	<classpathentry kind="lib" path="libs/jorbis-0.0.15.jar"/>
 	<classpathentry kind="lib" path="libs/jsfml.jar"/>
 	<classpathentry kind="lib" path="libs/lwjgl_util.jar"/>
-	<classpathentry kind="lib" path="libs/lwjgl.jar"/>
+	<classpathentry kind="lib" path="libs/lwjgl.jar">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="SpellWars/native/windows"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="libs/slick.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
