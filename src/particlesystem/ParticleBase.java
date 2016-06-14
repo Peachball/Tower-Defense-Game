@@ -8,7 +8,6 @@ import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 
 public class ParticleBase {
-	private GameMap map;
 	private Image pic;
 	private Point loc;
 	private Point vel; //I DON'T CARE I'M REPRESENTING VELOCITY AS A POINT
@@ -36,15 +35,10 @@ public class ParticleBase {
 		this(loc, vel, 0, 0, 0, 1, null, false, 1, 1); //MAGIC NUMBER ALERT
 	}
 	public ParticleBase(Point loc, Point vel, float drag, float orientation, 
-			float rVel, float lifetime, String pic, boolean alphaDecay, float startScale, float endScale){
+			float rVel, float lifetime, Image pic, boolean alphaDecay, float startScale, float endScale){
 		this.loc = loc;
 		this.vel = vel;
-		try {
-			this.pic = new Image(pic);
-		} catch (SlickException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		this.pic = pic.copy();
 		this.lifetime = lifetime;
 		this.maxLifetime = lifetime;
 		this.drag = drag;
@@ -64,7 +58,7 @@ public class ParticleBase {
 	}
 	public void draw(Graphics g) {
 		Image endPic = pic.getScaledCopy(scale);
-		endPic.setRotation(orientation);
+		endPic.rotate(orientation);
 		float width = endPic.getWidth();
 		float height = endPic.getHeight();
 		if(alphaDecay)

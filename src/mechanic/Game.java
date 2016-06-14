@@ -16,11 +16,12 @@ public class Game extends StateBasedGame {
 	public static int STATE_MENU = 0;
 	public static int STATE_GAME = 1;
 	public static int STATE_HELP = 2;
+	StateGame stategame = new StateGame();
 	
 	Map<String, Image> images = new HashMap<String, Image>();
 	
 	public static void main(String[] args) throws SlickException{
-		AppGameContainer app = new AppGameContainer(new Game("BTD Battles"));
+		AppGameContainer app = new AppGameContainer(new Game("Totally Legit TD"));
 		app.setDisplayMode(800, 800, false);
 		app.start();
 	}
@@ -33,8 +34,12 @@ public class Game extends StateBasedGame {
 	public void initStatesList(GameContainer container) throws SlickException {
 		// TODO Auto-generated method stub
 		addState(new StateMenu());
-		addState(new StateGame());
+		addState(stategame);
 			
+	}
+	
+	public void passPathGrid(boolean[][] pathGrid) {
+		stategame.passPathGrid(pathGrid);
 	}
 
 

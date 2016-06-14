@@ -9,9 +9,103 @@ import mechanic.GameElement;
 import mechanic.Point;
 
 public class Monster extends GameElement {
-
-	public Monster() {
+	int bounty;
+	int lifeCost;
+	ArrayList<Point> pathing = new ArrayList<Point>();
+	public Monster(int bounty, int lifeCost) {
 		super();
+		this.setBounty(bounty);
+		this.setLifeCost(lifeCost);
+	}
+	/*
+	 * The following pathfinding algorithm is very expensive and bad and is just a placeholder
+	 * for testing out pathfinding until we implement a better one
+	 */
+	
+	public ArrayList<Point> placeholderPathFind(double[][] scentGrid, Point loc, Point target) {
+		Point currentGridPosition = loc;
+		ArrayList<Point> path = new ArrayList<Point>();
+		boolean error = false;
+		while(!Point.equals(currentGridPosition, target) && path.size() < scentGrid.length * scentGrid[0].length && error == false) { //while the target isn't found and the size isn't too big and there isn't an error in pathfinding
+			//System.out.println("iteration is " + path.size());
+			//System.out.println("position at " + currentGridPosition.getX() + ", " + currentGridPosition.getY() + " scent at currentpos is " + scentGrid[(int)currentGridPosition.getX()][(int)currentGridPosition.getY()]);
+			//System.out.println("target is at " + target.getX() + ", " + target.getY() + " scent at target is " + scentGrid[(int)target.getX()][(int)target.getY()]);
+			double greatestScent = 0;
+			String dir = "none";
+			if(currentGridPosition.getY() > 0) {
+				if(scentGrid[(int)currentGridPosition.getX()][(int)currentGridPosition.getY() - 1] > greatestScent) {
+					greatestScent = scentGrid[(int)currentGridPosition.getX()][(int)currentGridPosition.getY() - 1];
+					dir = "up";
+				}
+			}
+			
+			if(currentGridPosition.getY() < scentGrid[0].length - 1) {
+				if(scentGrid[(int)currentGridPosition.getX()][(int)currentGridPosition.getY() + 1] > greatestScent) {
+					greatestScent = scentGrid[(int)currentGridPosition.getX()][(int)currentGridPosition.getY() + 1];
+					dir = "down";
+				}
+			} 
+			
+			if(currentGridPosition.getX() > 0) {
+				if(scentGrid[(int)currentGridPosition.getX() - 1][(int)currentGridPosition.getY()] > greatestScent) {
+					greatestScent = scentGrid[(int)currentGridPosition.getX() - 1][(int)currentGridPosition.getY()];
+					dir = "left";
+				}
+			} 
+			
+			if(currentGridPosition.getX() < scentGrid.length - 1) {
+				if(scentGrid[(int)currentGridPosition.getX() + 1][(int)currentGridPosition.getY()] > greatestScent) {
+					greatestScent = scentGrid[(int)currentGridPosition.getX() + 1][(int)currentGridPosition.getY()];
+					dir = "right";
+				}
+			} 
+			
+			switch (dir){
+				case "up":
+					path.add(new Point(currentGridPosition.getX(), currentGridPosition.getY() - 1));
+					currentGridPosition = new Point(currentGridPosition.getX(), currentGridPosition.getY() - 1);
+					break;
+				case "down":
+					path.add(new Point(currentGridPosition.getX(), currentGridPosition.getY() + 1));
+					currentGridPosition = new Point(currentGridPosition.getX(), currentGridPosition.getY() + 1);
+					break;
+				case "left":
+					path.add(new Point(currentGridPosition.getX() - 1, currentGridPosition.getY()));
+					currentGridPosition = new Point(currentGridPosition.getX() - 1, currentGridPosition.getY());
+					break;
+				case "right":
+					path.add(new Point(currentGridPosition.getX() + 1, currentGridPosition.getY()));
+					currentGridPosition = new Point(currentGridPosition.getX() + 1, currentGridPosition.getY());
+					break;
+				case "none":
+					System.out.println("Error with pathfinding: no detectable scent!");
+					error = true;
+					break;
+			}
+		}
+		return path;
+	}
+	//end of bs algorithm
+	public void updatePath(Point gDestination) {
+		//TODO: replace with more legit pathfinding
+		this.pathing.clear();
+		this.pathing.addAll(this.placeholderPathFind(this.getMap().getScentGrid(), this.getMap().positionToGrid(this.getLoc()), gDestination));
+	}
+	public void moveWithPath() {
+		if(this.pathing.size() > 0) {
+			Point nextPoint = this.pathing.get(0);
+			this.moveTowardsPoint(this.getMap().gridToPosition(nextPoint));
+			if(this.isReasonableDistanceAwayFrom(this.getMap().gridToPosition(nextPoint))) { //if it's within a reasonable distance from the point, it will consider it to have reached it
+				this.changeLoc(this.getMap().gridToPosition(nextPoint));
+				this.pathing.remove(0);
+			}
+		} else { //if it has reached the end of its path
+			this.getMap().getUI().changeLives(-this.lifeCost);
+			this.setRemove(true);
+		}
+	}
+	public ArrayList<Point> getPath() {
+		return this.pathing;
 	}
 	
 	/**
@@ -29,6 +123,7 @@ public class Monster extends GameElement {
 		efficiency[(int) loc.getX()][(int) loc.getY()] = 0;
 		
 		while (queue.size() > 0) {
+			System.out.println("queue.size = " + queue.size());
 			// Sort queue
 			queue.sort((Point p1, Point p2) -> {
 				return (int) sortByEfficiency(efficiency, p1, p2);
@@ -37,7 +132,7 @@ public class Monster extends GameElement {
 			Point base = queue.get(0);
 			double baseEffi = efficiency[(int) base.getX()][(int) base.getY()];
 			ArrayList<Point> adjacent = Point.proximity8(base);
-			for (int index = adjacent.size(); index > 0; index--) {
+			for (int index = adjacent.size() - 1; index >= 0; index--) {
 				Point test = adjacent.get(index);
 				if (test.getX() < 0 || test.getY() < 0) {
 					adjacent.set(index, null);
@@ -50,7 +145,7 @@ public class Monster extends GameElement {
 				if (findEffi != null) {
 					double control = efficiency[(int) findEffi.getX()][(int) findEffi.getY()];
 					double trial = baseEffi + 1; // Straight path
-					if (trial < control) {
+					if (trial > control) {
 						// Find if point is occupied
 						if (!pathgrid[(int) findEffi.getX()][(int) findEffi.getY()]) { // Assume true in pathgrid means occupied, otherwise, remove negation operator
 							queue.add(findEffi);
@@ -71,7 +166,7 @@ public class Monster extends GameElement {
 				if (findEffi != null) {
 					double control = efficiency[(int) findEffi.getX()][(int) findEffi.getY()];
 					double trial = baseEffi + Math.sqrt(2); // Diagonal path
-					if (trial < control) {
+					if (trial > control) {
 						// Assume true in pathgrid means occupied, otherwise, remove negation operator
 						if (!pathgrid[(int) findEffi.getX()][(int) findEffi.getY()] && !pathgrid[(int) adj1.getX()][(int) adj1.getY()] 
 								&& !pathgrid[(int) adj2.getX()][(int) adj2.getY()]) {
@@ -81,7 +176,6 @@ public class Monster extends GameElement {
 					}
 				}
 			}
-			
 			if (Point.equals(base, target)) { // Test if target has been found
 				queue.clear(); // While loop will not execute again
 			}
@@ -136,5 +230,33 @@ public class Monster extends GameElement {
 		double ef2 = efficiency[(int) p1.getX()][(int) p1.getY()];
 		return ef1 - ef2;
 
+	}
+	@Override
+	public void update() {
+		this.moveWithPath();
+		this.onMonsterUpdate();
+	}
+	public void onMonsterUpdate() {
+		
+	}
+	@Override
+	public void onDeath() {
+		this.getMap().getUI().changeMoney(this.bounty);
+		this.onMonsterDeath();
+	}
+	public void onMonsterDeath() {
+		
+	}
+	public void setBounty(int bounty) {
+		this.bounty = bounty;
+	}
+	public int getBounty() {
+		return this.bounty;
+	}
+	public void setLifeCost(int cost) {
+		this.lifeCost = cost;
+	}
+	public int getLifeCost() {
+		return this.lifeCost;
 	}
 }

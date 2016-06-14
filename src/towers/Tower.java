@@ -2,27 +2,42 @@
 package towers;
 import java.util.ArrayList;
 
+import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
+import org.newdawn.slick.SlickException;
+
 import particlesystem.ParticleEmitter;
-import particlesystem.emitterTypes;
+import particlesystem.EmitterTypes;
 import projectiles.Laser;
+import projectiles.Projectile;
+import mechanic.DamageType;
 import mechanic.GameElement;
 import mechanic.GameMap;
 import mechanic.Point;
 import monsters.Monster;
 
 public class Tower extends GameElement {
-	private GameMap map;
 	
 	ArrayList<GameElement> elementsInRange = new ArrayList<GameElement>();
 	
-	private float attackDamage;
+	public static final float SEARCH_INTERVAL = 0.2f; //how often it searches for a new target
+	public static final float MIN_ATTACK_SPEED = 50; //minimum attack speed
+	private int netWorth;
+	public static final float SELL_MULTIPLIER = 0.75f;
+	private float searchTimer;
+	
+	private float baseAttackDamage;
+	private float finalAttackDamage;
+	
+	private float projectileSpeed;
+	private Image projectileImage;
 	
 	private float attackRange;		//in pixels
 	private float baseAttackTime;	//in seconds
 	private float baseAttackSpeed;		//in percent, the tower's base attack speed (usually 100)
 	private float finalAttackSpeed;		//in percent, after all the bonuses from buffs
 	private float attackInterval;	//for internal use, in seconds, calculated each time attack speed changes
-	private float attackCooldown;	//for internal use, decremented each frame and checks if cooldown < 0
+	public float attackCooldown;	//for internal use, decremented each frame and checks if cooldown < 0
 	private GameElement attackTarget;		//its target
 	/*
 	 * Explanation of base attack time and attack speed:
@@ -38,16 +53,21 @@ public class Tower extends GameElement {
 	 * DPS = (attack damage) * (attack speed / 100) / (base attack time)
 	 * 
 	 * This way we gain an easy way to stack attack speed bonuses while also gaining leverage over their properties (i.e. a cannon that attacks once every 20 seconds won't suddenly become OP if we give it attack speed since we can just set its base attack time really high)
+	 * 
+	 * NOTES:
+	 * Minimum attack speed is 50
 	 */
-	public Tower(double x, double y, GameMap map, float attackRange, float baseAttackTime, float baseAttackSpeed, float attackDamage){
+	public Tower(double x, double y, float attackRange, float baseAttackTime, float baseAttackSpeed, float attackDamage, DamageType type){
 		super();
 		this.changeLoc(new Point(x,y));
-		this.map = map;
 		this.attackRange = attackRange;
 		this.baseAttackTime = baseAttackTime;
 		this.baseAttackSpeed = baseAttackSpeed;
 		this.attackCooldown = 0;
-		this.attackDamage = attackDamage;
+		this.baseAttackDamage = attackDamage;
+		this.searchTimer = 0;
+		this.setDamageType(type);
+		this.netWorth = 0;
 	}
 	
 	/*
@@ -55,9 +75,9 @@ public class Tower extends GameElement {
 	 * 
 	 * For use in towers that do something in an area around them (like a slow tower)
 	 */
-	public void updateElementInRangeList(){
+	public void updateElementsInRangeList(){
 		elementsInRange.clear();
-		for(GameElement e : map.getElements()) {
+		for(GameElement e : this.getMap().getElements()) {
 			if((float)Point.getDistance(e.getLoc(), this.getLoc()) <= this.attackRange) {
 				elementsInRange.add(e);
 			}
@@ -73,10 +93,10 @@ public class Tower extends GameElement {
 	 */
 	public void acquireTarget() {
 		this.attackTarget = null;
-		for(GameElement e : map.getElements()) {
+		for(GameElement e : this.getMap().getElements()) {
 			if((float)Point.getDistance(e.getLoc(), this.getLoc()) <= this.attackRange && e instanceof Monster) {
 				this.attackTarget = e;
-				System.out.println("TARGET FOUND B0SS");
+				//System.out.println("TARGET FOUND B0SS");
 				break;
 			}
 		}
@@ -86,7 +106,7 @@ public class Tower extends GameElement {
 	 * Checks if its target can no longer be targeted (if it's ded or it's out of range)
 	 */
 	public boolean targetIsTargetable(){
-		if(this.attackTarget == null || map.getElements().contains(this.attackTarget) == false || Point.getDistance(this.attackTarget.getLoc(), this.getLoc()) > this.attackRange) {
+		if(this.attackTarget == null || this.getMap().getElements().contains(this.attackTarget) == false || Point.getDistance(this.attackTarget.getLoc(), this.getLoc()) > this.attackRange) {
 			return false;
 		} else {
 			return true;
@@ -97,47 +117,69 @@ public class Tower extends GameElement {
 	 * Makes the tower attack, if there is a target
 	 */
 	public void attack() {
-		if(this.targetIsTargetable() == false) { //if target is outside of range or it ded
+		if(this.targetIsTargetable() == false && this.searchTimer <= 0) { //if target is outside of range or it ded
 			this.acquireTarget();
+			this.searchTimer = SEARCH_INTERVAL;
+		} else {
+			this.searchTimer -= this.getFrameTime();
 		}
-		if(this.attackTarget != null && map.getElements().contains(this.attackTarget)) { //if there is a target
-			this.onAttackTarget();
-			this.attackCooldown = this.attackInterval; //If the attack is successful, it will set the cooldown
+		if(this.attackTarget != null && this.getMap().getElements().contains(this.attackTarget)) { //if there is a target
+			while(this.attackCooldown <= 0) {
+				this.onAttackTarget();
+				this.attackCooldown += 1; //If the attack is successful, it will set the cooldown as a ratio
+			}
+			this.searchTimer = 0;
+		} else {
+			this.attackCooldown = 0;
 		}
 		//if there is no target, then nothing happens
 	}
 	/*
-	 * AN OVERRIDABLE FUNCTION (SHOULD BE OVERRIDED FOR SPECIAL TOWERS)
+	 * OVERRIDABLE FUNCTIONS***********************************************
 	 * What to do when the tower executes an attack
 	 */
 	public void onAttackTarget() {
-		map.addProjectile(new Laser(this, this.attackTarget, this.attackDamage));
+		this.turnToTarget();
+		this.getMap().addProjectile(new Projectile(this, this.attackTarget, this.finalAttackDamage, this.getDamageType(), this.projectileSpeed, this.projectileImage));
+	}
+	/*
+	 * Called by projectiles whenever a projectile lands
+	 */
+	public void onAttackLanded(GameElement target) {
 		
-		/*THINGS BELOW ARE COMPLETELY UNNECESSARY*/
-		String i = "res/explosion.png";
-		ParticleEmitter pe = new ParticleEmitter(this.getLoc(), emitterTypes.LINE_RADIAL, i, true, /*point, emitter type, image path, alphaDecay*/
-				0.1f, 0.1f, /*particle start scale*/
-				0, 0, /*particle end scale*/
-				1.5f, /*drag*/
-				0, 0, /*rotational velocity*/
-				0.6f, 0.9f, /*min and max lifetime*/
-				0, 30, /*min and max launch speed*/
-				0, 20, /*emitter lifetime, emission rate (if emitter lifetime is 0, then it becomes instant and emission rate becomes number of particles)*/
-				(float)attackTarget.getLoc().getX(), (float)attackTarget.getLoc().getY(), 0, 0, map); /*keyvalues and map*/
-		map.addParticleEmitter(pe);
-		/*THINGS ABOVE ARE COMPLETELY UNNECESSARY*/
+	}	
+	/*
+	 * Called by a projectile when it kills a target
+	 */
+	public void onAttackKillTarget(GameElement target) {
+		
+	}
+	/*
+	 * Called every frame
+	 */
+	public void onUpdate() {
+		
 	}
 	
 	public void updateAttackSpeed() {
-		this.finalAttackSpeed = this.baseAttackSpeed;
-		/*
-		 * INITIALIZING PSEUDO CODE
-		 * FOR EACH BUFF IN ITS ARRAYLIST OF BUFFS
-		 * 	ADD TO THE FINAL ATTACK SPEED
-		 */
+		this.finalAttackSpeed = this.baseAttackSpeed + this.finalAttackSpeedModifier;
+		if(this.finalAttackSpeed < MIN_ATTACK_SPEED) {
+			this.finalAttackSpeed = MIN_ATTACK_SPEED;
+		}
 		this.attackInterval = this.baseAttackTime * 100 / this.finalAttackSpeed;
 	}
-	
+	public void updateAttackDamage() {
+		this.finalAttackDamage = this.baseAttackDamage * this.finalAttackDamageModifier;
+		if(this.finalAttackDamage < 0) {
+			this.finalAttackDamage = 0;
+		}
+	}
+	public void turnToTarget() {
+		if(this.attackTarget != null && this.attackTarget.getRemove() == false) {
+			float deg = (float) Point.getDirectionDeg(this.getLoc(), this.attackTarget.getLoc());
+			this.changeOrientation(deg);
+		}
+	}
 	
 	/*
 	 * All towers have access to the acquire target, attack, etc. functions
@@ -155,16 +197,43 @@ public class Tower extends GameElement {
 	
 	@Override
 	public void update() {
-		if(this.attackCooldown > 0) {
-			this.attackCooldown -= this.getFrameTime();
-		} else {
-			this.updateAttackSpeed();
+		this.onTowerUpdate();
+		this.updateAttackSpeed();
+		this.attackCooldown -= this.getFrameTime()/this.attackInterval; //decrease the cooldown by a ratio, so that when attack speed changes on the fly, it accounts for it
+		if(this.attackCooldown < 0) {
+			this.updateAttackDamage();
 			this.attack();
 		}
+	}
+	public void onTowerUpdate() {
+		
+	}
+	@Override
+	public boolean changeHP(double hp) {
+		return false;
 	}
 	
 	public float getAttackRange(){
 		return this.attackRange;
+	}
+	public void setAttackRange(float range) {
+		this.attackRange = range;
+	}
+	public float getBaseAttackSpeed() {
+		return this.baseAttackSpeed;
+	}
+	public void setBaseAttackSpeed(float as) {
+		this.baseAttackSpeed = as;
+	}
+	public float getBaseAttackDamage() {
+		return this.baseAttackDamage;
+	}
+	public void setBaseAttackDamage(float damage) {
+		if(damage > 0) {
+			this.baseAttackDamage = damage;
+		} else {
+			this.baseAttackDamage = 0;
+		}
 	}
 	public float getAttackSpeed(){
 		return this.finalAttackSpeed;
@@ -174,5 +243,49 @@ public class Tower extends GameElement {
 	}
 	public GameElement getTarget(){
 		return this.attackTarget;
+	}
+	public void setProjectileSpeed(float speed) {
+		this.projectileSpeed = speed;
+	}
+	public void setProjectileImage(String path){
+		try {
+			this.projectileImage = new Image(path);
+		} catch (SlickException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	public void setProjectileImage(Image image) {
+		this.projectileImage = image;
+	}
+	public float getFinalAttackDamage() {
+		return this.finalAttackDamage;
+	}
+	public float getProjectileSpeed() {
+		return this.projectileSpeed;
+	}
+	public Image getProjectileImage() {
+		return this.projectileImage;
+	}
+	public String getTowerID() {
+		return "";
+	}
+	public int getCostForNextLevel() {
+		return 0;
+	}
+	public float getAttackRangeForNextLevel() {
+		return 0;
+	}
+	public int getNetWorth() {
+		return this.netWorth;
+	}
+	public void changeNetWorth(int money) {
+		this.netWorth += money;
+	}
+	public void setNetWorth(int money){
+		this.netWorth = money;
+	}
+	public int getSellPrice() {
+		return (int)(this.netWorth * SELL_MULTIPLIER);
 	}
 }

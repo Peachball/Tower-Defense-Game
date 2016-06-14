@@ -1,6 +1,6 @@
 package particlesystem;
 
-public enum emitterTypes{
+public enum EmitterTypes{
 	POINT_RADIAL,				//NO KEYVALUES
 	
 	POINT_DIRECTION,	//KEYVALUE 1: DIRECTION (IN DEGREES)

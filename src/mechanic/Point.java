@@ -25,6 +25,12 @@ public class Point {
 		this.x = x;
 		this.y = y;
 	}
+	/**
+	 * Prints out the point's state
+	 */
+	public String toString() {
+		return "(" + this.x + ", " + this.y + ")";
+	}
 	
 	/**
 	 * Access instance variable x
@@ -81,6 +87,66 @@ public class Point {
 	}
 	
 	/**
+	 * Adds the values of two points together
+	 * 
+	 * @param p The point to add
+	 */
+	public void add(Point p) {
+		this.x += p.x;
+		this.y += p.y;
+	}
+	
+	/**
+	 * Subtracts the values of two points
+	 * 
+	 * @param p The point to subtract
+	 */
+	public void subract(Point p) {
+		this.x -= p.x;
+		this.y -= p.y;
+	}
+	
+	/**
+	 * Scales a vector
+	 * 
+	 * @param s A scalar
+	 */
+	public void scale(double s) {
+		this.x *= s;
+		this.y *= s;
+	}
+	
+	/**
+	 * Adds two points from a static context
+	 * @param p1 A point to add
+	 * @param p2 Another point to add
+	 * @return The result of the addition
+	 */
+	public static Point add(Point p1, Point p2) {
+		return new Point(p1.x + p2.x, p1.y + p2.y);
+	}
+	
+	/**
+	 * Subtracts two points from a static context
+	 * @param p1 A point to subtract from
+	 * @param p2 A point to subtract with
+	 * @return The result of the subtraction
+	 */
+	public static Point subtract(Point p1, Point p2) {
+		return new Point(p1.x - p2.x, p1.y - p2.y);
+	}
+	
+	/**
+	 * Multiplies a point by a scalar and returns the result
+	 * @param p The point to scale
+	 * @param scale The number to multiply by
+	 * @return The result of the multiplication
+	 */
+	public static Point scale(Point p, double scale) {
+		return new Point(p.x * scale, p.y * scale);
+	}
+	
+	/**
 	 * Find the magnitude of the vector between two points
 	 * 
 	 * Parameters should be instantiated
@@ -134,17 +200,22 @@ public class Point {
 	
 	/**
 	 * Find angle in radians of a vector
+	 * If the vector is 0, then it returns 0
 	 * 
 	 * Parameters should be instantiated
 	 * 
 	 * @param vec	The vector
-	 * @return		The angle of the vector in radians
+	 * @return		The angle of the vector in radians (if non-zero)
 	 */
 	public static double getDirectionRad(Point vec) {
-		if (vec.y >= 0) {
-			return Math.acos(vec.y / vec.x);
+		if(!(vec.x == 0 && vec.y == 0)) {
+			if (vec.x >= 0) {
+				return -Math.atan(vec.y / vec.x);
+			}
+			return Math.PI - Math.atan(vec.y / vec.x);
 		}
-		return 2 * Math.PI - Math.acos(vec.y / vec.x);
+		System.out.println("ERROR: A zero vector was passed to a getDirection function!"); //TODO: Remove debug
+		return 0;
 	}
 	
 	/**
@@ -161,6 +232,7 @@ public class Point {
 		double dy;
 		
 		if (start == null || end == null) { // Point does not exist!
+			System.out.println("ERROR: A null Point was passed to the getVector function!"); //TODO: Remove debug
 			return new Point(0, 0); // If a point does not exist, there is no vector.
 		}
 		
@@ -221,26 +293,29 @@ public class Point {
 	 */
 	public static Point getVector(double distance, double direction) {
 		if (distance < 0) { // You cannot travel negative distance!
-			return new Point(); // No traveled vector
+			System.out.println("ERROR: A negative distance was passed to a getVector(distance, direction) function!"); //TODO: Remove debug
+			//return new Point(); // No traveled vector
 		}
-		
+		/*
 		while (direction < 0) {
 			direction += 2 * Math.PI;
 		}
 		while (direction > 2 * Math.PI) {
 			direction -= 2 * Math.PI;
 		}
-		
+		*/
+		/*
 		if (direction < Math.PI / 2) {
-			return new Point(Math.cos(direction) * distance, Math.sin(direction) * distance); // Quadrant I
+			return new Point(Math.cos(direction) * distance, -Math.sin(direction) * distance); // Quadrant I
 		}
 		if (direction < Math.PI) {
-			return new Point(-Math.cos(direction) * distance, Math.sin(direction) * distance); // Quadrant II
+			return new Point(-Math.cos(direction) * distance, -Math.sin(direction) * distance); // Quadrant II
 		}
 		if (direction < Math.PI * 3 / 2) {
-			return new Point(Math.cos(direction) * distance, -Math.sin(direction) * distance); // Quadrant III
+			return new Point(-Math.cos(direction) * distance, Math.sin(direction) * distance); // Quadrant III
 		}
-		return new Point(-Math.cos(direction) * distance, -Math.sin(direction) * distance); // Quadrant IV
+		*/
+		return new Point(Math.cos(direction) * distance, -Math.sin(direction) * distance); // Quadrant IV
 	}
 	
 	/**
@@ -310,6 +385,24 @@ public class Point {
 		adjacents.add(new Point(p.x, p.y - 1));
 		return adjacents;
 	}
+	//variation where the distance of the points are changed
+	public static ArrayList<Point> proximity4(Point p, double distance) {
+		ArrayList<Point> adjacents = new ArrayList<Point>();
+		adjacents.add(new Point(p.x + distance, p.y));
+		adjacents.add(new Point(p.x, p.y + distance));
+		adjacents.add(new Point(p.x - distance, p.y));
+		adjacents.add(new Point(p.x, p.y - distance));
+		return adjacents;
+	}
+	//another variation with height and width
+		public static ArrayList<Point> proximity4(Point p, double width, double height) {
+			ArrayList<Point> adjacents = new ArrayList<Point>();
+			adjacents.add(new Point(p.x + width, p.y));
+			adjacents.add(new Point(p.x, p.y + height));
+			adjacents.add(new Point(p.x - width, p.y));
+			adjacents.add(new Point(p.x, p.y - height));
+			return adjacents;
+		}
 	
 	/**
 	 * Find the 8 closest points to given point
@@ -333,5 +426,14 @@ public class Point {
 		adjacents.add(new Point(p.x, p.y - 1));
 		adjacents.add(new Point(p.x + 1, p.y - 1));
 		return adjacents;
+	}
+	/**
+	 * Normalizes a vector (distance = 1)
+	 */
+	public void normalize() {
+		double tempx = x/getDistance(this, new Point());
+		double tempy = y/getDistance(this, new Point());
+		x = tempx;
+		y = tempy;
 	}
 }

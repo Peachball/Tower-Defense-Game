@@ -4,22 +4,18 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.geom.Line;
 
+import towers.Tower;
+import mechanic.DamageType;
 import mechanic.GameElement;
 
 public class Laser extends Projectile {
+
+	float delay;
 	
-	float damage;
-	
-	GameElement tower;
-	GameElement monster;
-	int delay;
-	
-	public Laser(GameElement tower, GameElement monster, float damage){
-		this.tower = tower;
-		this.monster = monster;
-		this.delay = 150;
-		this.damage = damage;
-		monster.doDamage(this.damage);
+	public Laser(GameElement creator, GameElement monster, float damage){
+		super(creator, monster, damage, DamageType.MAGIC, 0, "");
+		this.delay = 0.2f;
+		monster.doDamage(this.damage, this.getDamageType());
 	}
 	
 	@Override
@@ -28,7 +24,7 @@ public class Laser extends Projectile {
 			this.setRemove(true);
 		}
 		else{
-			this.delay--;
+			this.delay -= this.getFrameTime();
 		}
 	}
 	
@@ -38,7 +34,7 @@ public class Laser extends Projectile {
 			return;
 		}
 		g.setColor(Color.yellow);
-		g.drawLine((float)tower.getX(),(float) tower.getY(),(float) monster.getX(),(float) monster.getY());
+		g.drawLine((float)this.creator.getX(),(float)this.creator.getY(),(float)this.target.getX(),(float)this.target.getY());
 	}
 	
 }
